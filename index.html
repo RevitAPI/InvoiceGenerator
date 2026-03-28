@@ -420,6 +420,7 @@
      GLOBAL STATE
      ----------------------------------------------------------- */
   let logoDataUrl = ''; // base64-encoded logo image
+  const DEFAULT_LOGO_PATH = 'resources/WhatsApp Image 2026-03-28 at 12.31.02 PM.jpeg';
 
   /* ===========================================================
      INIT — runs once the DOM is ready
@@ -434,6 +435,9 @@
     // Add two blank starter rows
     addRow();
     addRow();
+
+    // Load default logo if no saved logo exists
+    loadDefaultLogo();
 
     // Event listeners
     document.getElementById('logoUpload').addEventListener('change', handleLogoUpload);
@@ -492,11 +496,15 @@
      INVOICE NUMBER
      =========================================================== */
 
-  /** Generate a random INV-YYYY-NNNN reference number */
+  /** Generate invoice number from current date+time: ddmmyyyyhhmm */
   function generateInvoiceNumber() {
-    const year = new Date().getFullYear();
-    const rand = String(Math.floor(Math.random() * 9000) + 1000);
-    return `INV-${year}-${rand}`;
+    const d = new Date();
+    const dd   = String(d.getDate()).padStart(2, '0');
+    const mm   = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const hh   = String(d.getHours()).padStart(2, '0');
+    const min  = String(d.getMinutes()).padStart(2, '0');
+    return `${dd}${mm}${yyyy}${hh}${min}`;
   }
 
   /** Re-roll invoice number on button click */
@@ -536,7 +544,7 @@
       </td>
       <td>
         <input type="number" class="form-control form-control-sm item-qty"
-               placeholder="1" min="0" step="1"
+               placeholder="" min="0" step="1"
                value="${item.qty != null ? escapeHtml(String(item.qty)) : ''}"
                aria-label="Quantity">
       </td>
@@ -640,6 +648,34 @@
   /* ===========================================================
      LOGO UPLOAD
      =========================================================== */
+
+  /**
+   * Load the default logo from the resources folder.
+   * Uses fetch to read the image file and convert it to a data URL.
+   */
+  function loadDefaultLogo() {
+    // Skip if a logo is already loaded (e.g. from localStorage)
+    if (logoDataUrl) return;
+
+    fetch(DEFAULT_LOGO_PATH)
+      .then(res => {
+        if (!res.ok) throw new Error('Logo not found');
+        return res.blob();
+      })
+      .then(blob => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          logoDataUrl = ev.target.result;
+          const preview = document.getElementById('logoPreview');
+          preview.src = logoDataUrl;
+          preview.classList.add('visible');
+        };
+        reader.readAsDataURL(blob);
+      })
+      .catch(() => {
+        // Default logo not available — silently ignore
+      });
+  }
 
   /**
    * Handle company logo file selection.
