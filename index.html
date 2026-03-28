@@ -410,6 +410,7 @@
        =================================================== -->
   <script src="js/bootstrap.bundle.min.js"></script>
   <script src="js/html2pdf.bundle.min.js"></script>
+  <script src="js/default-logo.js"></script>
   <script>
   /* ===========================================================
      INVOICE GENERATOR  —  main.js (inline)
@@ -420,7 +421,6 @@
      GLOBAL STATE
      ----------------------------------------------------------- */
   let logoDataUrl = ''; // base64-encoded logo image
-  const DEFAULT_LOGO_PATH = 'resources/WhatsApp Image 2026-03-28 at 12.31.02 PM.jpeg';
 
   /* ===========================================================
      INIT — runs once the DOM is ready
@@ -650,31 +650,18 @@
      =========================================================== */
 
   /**
-   * Load the default logo from the resources folder.
-   * Uses fetch to read the image file and convert it to a data URL.
+   * Load the default logo from the embedded base64 constant.
    */
   function loadDefaultLogo() {
     // Skip if a logo is already loaded (e.g. from localStorage)
     if (logoDataUrl) return;
 
-    fetch(DEFAULT_LOGO_PATH)
-      .then(res => {
-        if (!res.ok) throw new Error('Logo not found');
-        return res.blob();
-      })
-      .then(blob => {
-        const reader = new FileReader();
-        reader.onload = ev => {
-          logoDataUrl = ev.target.result;
-          const preview = document.getElementById('logoPreview');
-          preview.src = logoDataUrl;
-          preview.classList.add('visible');
-        };
-        reader.readAsDataURL(blob);
-      })
-      .catch(() => {
-        // Default logo not available — silently ignore
-      });
+    if (typeof DEFAULT_LOGO_BASE64 !== 'undefined' && DEFAULT_LOGO_BASE64) {
+      logoDataUrl = DEFAULT_LOGO_BASE64;
+      const preview = document.getElementById('logoPreview');
+      preview.src = logoDataUrl;
+      preview.classList.add('visible');
+    }
   }
 
   /**
